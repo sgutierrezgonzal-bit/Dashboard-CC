@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>City Campus — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--glass:rgba(255,255,255,.08);--gb:rgba(255,255,255,.12);--gh:rgba(255,255,255,.15);--text:#fff;--t2:rgba(255,255,255,.6);--t3:rgba(255,255,255,.32);--font:'DM Sans',sans-serif;--r:18px;--blur:24px}
+html,body{overflow-x:hidden}
+body{font-family:var(--font);color:var(--text);min-height:100vh;position:relative;
+  background:
+    radial-gradient(ellipse 80% 60% at 80% 10%,rgba(180,200,170,.28) 0%,transparent 55%),
+    radial-gradient(ellipse 70% 50% at 10% 25%,rgba(120,160,140,.22) 0%,transparent 60%),
+    radial-gradient(ellipse 90% 70% at 50% 90%,rgba(40,70,90,.55) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 50% at 90% 70%,rgba(70,110,100,.35) 0%,transparent 55%),
+    radial-gradient(ellipse 70% 60% at 25% 75%,rgba(50,80,95,.45) 0%,transparent 55%),
+    linear-gradient(170deg,#5d7068 0%,#475a58 18%,#374a52 38%,#2c3e4c 58%,#283645 78%,#202d3a 100%);
+  background-attachment:fixed}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(circle at 18% 38%,rgba(160,200,170,.18) 0%,transparent 14%),
+    radial-gradient(circle at 78% 62%,rgba(100,150,180,.16) 0%,transparent 16%),
+    radial-gradient(circle at 42% 82%,rgba(80,120,140,.18) 0%,transparent 18%);
+  filter:blur(40px)}
+.layout{position:relative;z-index:1}
+.layout{display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sb{width:200px;background:rgba(0,0,0,.3);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-right:1px solid rgba(255,255,255,.05);padding:18px 12px;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:30;overflow-y:auto;scrollbar-width:none;transition:transform .3s ease}
+.sb::-webkit-scrollbar{width:0}
+.sb.hidden{transform:translateX(-200px)}
+.sb-toggle{position:fixed;top:12px;left:12px;z-index:25;width:34px;height:34px;border-radius:9px;background:rgba(0,0,0,.45);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,.1);color:var(--text);display:none;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:.2s}
+.sb-toggle:hover{background:rgba(0,0,0,.6)}
+.sb-toggle.show{display:flex}
+.sb-close{position:absolute;top:12px;right:10px;width:24px;height:24px;border-radius:6px;background:rgba(255,255,255,.06);border:none;color:rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;transition:.15s}
+.sb-close:hover{background:rgba(255,255,255,.12);color:#FFF}
+.sb-brand{font-size:16px;font-weight:600;letter-spacing:-.3px;margin-bottom:2px}
+.sb-sub{font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:2.5px;margin-bottom:22px;font-weight:300}
+.sb-g{font-size:7px;text-transform:uppercase;letter-spacing:2px;color:var(--t3);margin:14px 0 5px;padding-left:8px;font-weight:500}
+.sb-i{display:flex;align-items:center;gap:7px;padding:7px 9px;border-radius:10px;font-size:11px;font-weight:400;color:var(--t2);cursor:pointer;transition:.2s;margin-bottom:1px}
+.sb-i:hover{background:rgba(255,255,255,.08);color:var(--text)}
+.sb-i.on{background:rgba(255,255,255,.13);color:var(--text);font-weight:500}
+.sb-ic{font-size:12px;width:16px;text-align:center;opacity:.6}
+.sc{margin-top:4px;padding:7px 8px;background:rgba(255,255,255,.04);border-radius:9px;margin-bottom:4px;border:1px solid rgba(255,255,255,.04)}
+.sc-t{font-size:9px;font-weight:500;margin-bottom:4px;color:var(--t2);display:flex;justify-content:space-between}
+.sc-tn{color:var(--t3);font-weight:400}
+.sc-g{display:grid;grid-template-columns:repeat(7,1fr);gap:1.5px}
+.sc-d{width:100%;aspect-ratio:1;border-radius:50%}
+.sc-d.e{background:transparent}.sc-d.o{background:rgba(255,255,255,.06)}.sc-d.p{background:#FF6B35}
+.sb-f{margin-top:auto;padding-top:10px;border-top:1px solid rgba(255,255,255,.06)}
+
+/* MAIN */
+.mn{flex:1;margin-left:200px;padding:20px 22px;scroll-behavior:smooth;transition:margin-left .3s;width:100%;min-width:0}
+.mn.full{margin-left:0}
+
+.hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px;flex-wrap:wrap}
+.hd-l{display:flex;align-items:center;gap:10px}
+.hd h1{font-size:22px;font-weight:600;letter-spacing:-.4px}
+.hd-d{font-size:10px;color:var(--t2);margin-top:2px;font-weight:300}
+.hd-r{display:flex;gap:5px;flex-wrap:wrap}
+.btn{padding:6px 13px;border-radius:10px;font-size:10px;font-family:var(--font);cursor:pointer;border:1px solid var(--gb);background:var(--glass);color:var(--text);font-weight:400;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:.2s;white-space:nowrap}
+.btn:hover{background:var(--gh)}
+.btn.warn{border-color:rgba(239,68,68,.3);color:#FCA5A5}
+.btn.warn:hover{background:rgba(239,68,68,.12)}
+
+.w{background:var(--glass);backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));border:1px solid var(--gb);border-radius:var(--r);padding:16px;transition:opacity .4s,transform .4s}
+.w.dim{opacity:.12;transform:scale(.97);pointer-events:none}
+.wt{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:1px;color:var(--t2);margin-bottom:11px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.wb{font-size:8px;padding:3px 7px;border-radius:7px;font-weight:500;background:rgba(255,255,255,.1);color:var(--t2);border:1px solid rgba(255,255,255,.06);white-space:nowrap}
+
+.row{display:grid;gap:10px;margin-bottom:10px}
+.r4{grid-template-columns:repeat(4,1fr)}.r2{grid-template-columns:1fr 1fr}.r1{grid-template-columns:1fr}
+.r3c{grid-template-columns:1.1fr 2fr 2fr}
+
+/* STATS */
+.sv{font-size:30px;font-weight:300;letter-spacing:-1px;line-height:1}
+.sl{font-size:8px;text-transform:uppercase;letter-spacing:1.2px;color:var(--t3);font-weight:500;margin-bottom:5px}
+.ss{font-size:9px;color:var(--t2);margin-top:4px;font-weight:300}
+
+/* COUNTDOWN */
+.cd{position:relative;overflow:hidden;background:rgba(0,0,0,.25);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px)}
+.gl{position:absolute;width:120px;height:120px;border-radius:50%;filter:blur(50px);opacity:.35;pointer-events:none}
+.g1{background:#FF6B35;top:-30px;right:-20px}.g2{background:#3B82F6;bottom:-30px;left:10%}
+.cd-n{font-size:54px;font-weight:300;line-height:1;position:relative;z-index:1;letter-spacing:-2px}
+.cd-l{font-size:10px;color:var(--t2);margin-top:3px;position:relative;z-index:1;font-weight:300;text-transform:uppercase;letter-spacing:1.5px}
+.cd-evs{margin-top:14px;position:relative;z-index:1;border-top:1px solid rgba(255,255,255,.06);padding-top:10px}
+.cd-ev{display:flex;align-items:center;gap:7px;padding:5px 18px 5px 0;font-size:9.5px;color:var(--t2);font-weight:300;position:relative}
+.cd-ev .cd-tx{flex:1;cursor:pointer}
+.cd-ev:hover .del-x{opacity:1}
+.cd-ck{width:13px;height:13px;border-radius:50%;border:1px solid rgba(255,255,255,.2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.2s;cursor:pointer;background:transparent}
+.cd-ck.dn{background:#22C55E;border-color:#22C55E}
+.cd-ck.dn::after{content:'✓';font-size:7px;font-weight:700;color:#fff}
+.cd-ev.dn .cd-tx{text-decoration:line-through;color:var(--t3)}
+
+.del-x{position:absolute;right:0;top:50%;transform:translateY(-50%);width:16px;height:16px;border-radius:50%;background:rgba(239,68,68,.3);border:none;color:#FFF;font-size:9px;cursor:pointer;opacity:0;transition:.15s;display:flex;align-items:center;justify-content:center;font-family:var(--font);line-height:1;padding:0}
+.del-x:hover{background:rgba(239,68,68,.6)}
+
+/* CALENDAR */
+.cm{font-size:24px;font-weight:600;letter-spacing:-.5px}
+.cy{font-size:13px;color:var(--t3);font-weight:300}
+.cv-tog{display:inline-flex;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:99px;padding:3px;gap:2px}
+.cv-tog button{background:transparent;border:none;color:var(--t2);font-family:var(--font);font-size:9px;font-weight:500;padding:5px 12px;border-radius:99px;cursor:pointer;transition:.2s;letter-spacing:.3px}
+.cv-tog button.on{background:#fff;color:#1a2230;font-weight:600}
+.cv-tog button:hover:not(.on){color:var(--text)}
+
+.cg{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}
+.cdl{font-size:9px;color:var(--t3);font-weight:400;padding:6px 0;letter-spacing:1px;text-transform:uppercase}
+.cc{min-height:50px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;padding:4px 2px;font-size:12px;font-weight:500;color:var(--t2);cursor:pointer;transition:.2s;position:relative}
+.cc:hover{background:rgba(255,255,255,.06)}
+.cc-num{display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;font-size:12px;font-weight:500;line-height:1;flex-shrink:0}
+.cc.td .cc-num{background:#fff;color:#1a2230;font-weight:700}
+.cc.has-badge .cc-num{color:#fff;font-weight:700}
+.cc.has-badge.bg-pink   .cc-num{background:#EC4899}
+.cc.has-badge.bg-blue   .cc-num{background:#3B82F6}
+.cc.has-badge.bg-orange .cc-num{background:#FF6B35}
+.cc.has-badge.bg-green  .cc-num{background:#22C55E}
+.cc.has-badge.bg-purple .cc-num{background:#8B5CF6}
+.cc.has-badge.bg-yellow .cc-num{background:#F0C808;color:#1a2230}
+.cc.has-badge.bg-red    .cc-num{background:#EF4444}
+.cc-line{height:2px;width:60%;border-radius:2px;background:var(--cl,transparent)}
+.cc-line.cl-blue{background:#3B82F6}.cc-line.cl-orange{background:#FF6B35}
+.cc-line.cl-green{background:#22C55E}.cc-line.cl-purple{background:#8B5CF6}
+.cc-line.cl-pink{background:#EC4899}.cc-line.cl-yellow{background:#F0C808}.cc-line.cl-red{background:#EF4444}
+.cc-lbl{font-size:7px;color:var(--t2);line-height:1.15;font-weight:400;text-align:center;max-width:100%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;padding:0 1px;letter-spacing:.1px}
+.cc.has-badge .cc-lbl{color:var(--text);font-weight:500}
+.cc.em{color:transparent;pointer-events:none;visibility:hidden}
+
+/* WEEKLY VIEW */
+.cw-week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:6px}
+.cw-day{display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 2px;border-radius:12px;cursor:pointer;transition:.2s;background:rgba(255,255,255,.03);border:1px solid transparent;min-height:78px}
+.cw-day:hover{background:rgba(255,255,255,.07)}
+.cw-day.td{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18)}
+.cw-day-dn{font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:1.2px}
+.cw-day-num{font-size:18px;font-weight:600;letter-spacing:-.5px}
+.cw-day.td .cw-day-num{color:#fff}
+.cw-day-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.15);margin-top:2px}
+.cw-day.has-ev .cw-day-dot{background:#FF6B35}
+.cw-bigday{display:grid;grid-template-columns:auto 1fr;align-items:end;gap:14px;padding:6px 2px 14px}
+.cw-bigday-m{font-size:34px;font-weight:600;letter-spacing:-1px;line-height:1}
+.cw-bigday-d{font-size:34px;font-weight:600;letter-spacing:-1px;line-height:1;text-align:right;color:var(--text)}
+.cw-events{margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.06)}
+.cw-ev-row{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:10px;color:var(--t2);position:relative;padding-right:20px}
+.cw-ev-row:hover .del-x{opacity:1}
+.cw-ev-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.cw-empty{font-size:10px;color:var(--t3);padding:8px 0;text-align:center;font-style:italic}
+.ca{margin-top:7px;font-size:9px;color:var(--t3);cursor:pointer;text-align:center;padding:5px;border-radius:7px;border:1px dashed rgba(255,255,255,.08);transition:.2s}
+.ca:hover{background:rgba(255,255,255,.05);color:var(--t2)}
+
+.ev-popup{display:none;position:absolute;background:rgba(20,25,35,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px;z-index:50;min-width:200px;max-width:240px;font-size:10px;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.ev-popup.show{display:block}
+.ev-popup h4{font-size:12px;font-weight:500;margin-bottom:8px}
+.ev-popup-item{padding:5px 0;color:var(--t2);display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:10px}
+.ev-popup-item .px{position:static;transform:none;opacity:1}
+
+/* TODO */
+.tb{background:rgba(0,0,0,.2);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);display:flex;flex-direction:column}
+.tp{font-size:30px;font-weight:300;letter-spacing:-1px;line-height:1}
+.tps{font-size:9px;color:var(--t3);font-weight:300}
+.tbar{height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;margin-top:6px}
+.tbf{height:100%;border-radius:2px;background:linear-gradient(90deg,#FF6B35,#F0C808);transition:width .4s}
+#tL{margin-top:8px;flex:1;overflow-y:auto;max-height:340px;scrollbar-width:thin}
+#tL::-webkit-scrollbar{width:4px}
+#tL::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+.ti{display:flex;align-items:center;gap:8px;padding:9px 32px 9px 12px;margin:3px 0;background:rgba(255,255,255,.06);border-radius:11px;border:1px solid rgba(255,255,255,.04);position:relative;transition:.2s}
+.ti:hover{background:rgba(255,255,255,.1)}
+.ti:hover .del-x{opacity:1}
+.tc{width:14px;height:14px;border-radius:50%;border:1.5px solid rgba(255,255,255,.2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.2s;cursor:pointer;background:transparent}
+.tc.dn{background:#22C55E;border-color:#22C55E}
+.tc.dn::after{content:'✓';font-size:8px;color:#FFF;font-weight:700}
+.tl{font-size:10px;font-weight:400;color:var(--text);flex:1;transition:.2s;line-height:1.3}
+.tl.sk{text-decoration:line-through;color:var(--t3)}
+.pri{font-size:7px;padding:2px 5px;border-radius:4px;font-weight:600;margin-left:4px;flex-shrink:0;letter-spacing:.3px;text-transform:uppercase}
+.pri-h{background:rgba(239,68,68,.25);color:#FCA5A5}
+.pri-m{background:rgba(245,158,11,.25);color:#FDE68A}
+.pri-l{background:rgba(34,197,94,.25);color:#86EFAC}
+
+/* RUBRICHE */
+.rg{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+.rc{border-radius:13px;padding:13px;min-height:105px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid rgba(255,255,255,.08)}
+.rcn{font-size:12px;font-weight:600}.rcd{font-size:8px;opacity:.5;margin-top:2px}
+.rcp{font-size:24px;font-weight:300;margin-top:6px;letter-spacing:-1px;line-height:1}
+.rb{height:4px;border-radius:2px;overflow:hidden;margin-top:6px;background:rgba(255,255,255,.1)}
+.rbf{height:100%;border-radius:2px;transition:width .5s}
+.r1c{background:linear-gradient(135deg,rgba(255,107,53,.18),rgba(240,200,8,.12))}.r1c .rbf{background:linear-gradient(90deg,#FF6B35,#F0C808)}
+.r2c{background:linear-gradient(135deg,rgba(59,130,246,.18),rgba(34,197,94,.12))}.r2c .rbf{background:linear-gradient(90deg,#3B82F6,#22C55E)}
+.r3c_{background:linear-gradient(135deg,rgba(34,197,94,.18),rgba(52,211,153,.12))}.r3c_ .rbf{background:linear-gradient(90deg,#22C55E,#34D399)}
+.r4c{background:linear-gradient(135deg,rgba(139,92,246,.18),rgba(236,72,153,.12))}.r4c .rbf{background:linear-gradient(90deg,#8B5CF6,#EC4899)}
+.r5c{background:rgba(255,255,255,.04)}.r5c .rbf{background:rgba(255,255,255,.3)}
+
+/* AREE */
+.ag{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.ac{border-radius:13px;padding:13px;border:1px solid rgba(255,255,255,.08)}
+.acn{font-size:12px;font-weight:600;margin-bottom:2px}.acs{font-size:9px;color:var(--t2);margin-bottom:6px}
+.acx{font-size:8px;color:var(--t3);padding:5px 7px;background:rgba(255,255,255,.04);border-radius:5px;line-height:1.5}
+.ac.osp{background:rgba(232,75,138,.1)}.ac.ene{background:rgba(234,179,8,.1)}
+.ac.fin{background:rgba(59,130,246,.1)}.ac.cib{background:rgba(255,107,53,.1)}
+.ac.mob{background:rgba(236,72,153,.1)}.ac.cul{background:rgba(255,255,255,.04)}
+
+/* RT */
+.rtr{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04)}.rtr:last-child{border-bottom:none}
+.rta{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;flex-shrink:0;letter-spacing:.3px}
+.rti{flex:1;min-width:0}.rtn{font-size:10px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rto{font-size:8px;color:var(--t3)}
+.rtd{display:flex;gap:2px}.rtb{width:14px;height:14px;border-radius:3px;font-size:6px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.rtb.y{background:rgba(34,197,94,.6);color:#FFF}.rtb.n{background:rgba(255,255,255,.06);color:var(--t3)}
+.rtt{font-size:8px;padding:2px 6px;border-radius:4px;font-weight:500;flex-shrink:0;text-transform:uppercase;letter-spacing:.3px}
+.tok{background:rgba(34,197,94,.2);color:#86EFAC}.tpr{background:rgba(59,130,246,.2);color:#93C5FD}
+.twa{background:rgba(245,158,11,.2);color:#FDE68A}.tof{background:rgba(255,255,255,.06);color:var(--t3)}
+
+/* ROADMAP */
+.rmh{display:grid;grid-template-columns:90px repeat(7,1fr);font-size:8px;color:var(--t3);text-align:center;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px}
+.rmr{display:grid;grid-template-columns:90px repeat(7,1fr);align-items:center;margin-bottom:7px;min-height:36px;position:relative}
+.rmr:hover .rm-del{opacity:1}
+.rml{font-size:9px;color:var(--t2);font-weight:400;padding-right:6px;text-align:right}
+.rmb{border-radius:7px;padding:6px 9px;font-size:9px;font-weight:500;display:flex;align-items:center;justify-content:space-between;min-height:32px;cursor:pointer;transition:.15s;gap:8px}
+.rmb:hover{filter:brightness(1.15)}
+.rmt{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px}
+.rmtg{font-size:7px;padding:2px 5px;border-radius:3px;background:rgba(0,0,0,.25);font-weight:400;color:var(--t2)}
+.rmdu{font-size:7px;padding:2px 6px;border-radius:3px;background:rgba(0,0,0,.25);font-weight:500}
+.rmm{width:20px;height:20px;background:linear-gradient(135deg,#F0C808,#FF6B35);transform:rotate(45deg);border-radius:3px;margin:0 auto;box-shadow:0 0 18px rgba(255,107,53,.4)}
+.rm-del{position:absolute;right:-4px;top:6px;opacity:0}
+.rm-edit{position:absolute;right:14px;top:6px;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.08);border:none;color:#fff;font-size:9px;cursor:pointer;opacity:0;transition:.15s;display:flex;align-items:center;justify-content:center;font-family:var(--font);padding:0;line-height:1}
+.rm-edit:hover{background:rgba(255,255,255,.2)}
+.rmr:hover .rm-edit{opacity:1}
+
+.cw{position:relative;height:160px}
+.ps{text-align:center}.pn{font-size:24px;font-weight:300;letter-spacing:-1px}.pl{font-size:7px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-top:3px}
+
+@media(max-width:1100px){.r4{grid-template-columns:1fr 1fr}.r3c{grid-template-columns:1fr}.rg{grid-template-columns:repeat(3,1fr)}.ag{grid-template-columns:1fr 1fr}}
+
+/* NAV ARROWS calendario */
+.cnav{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:var(--t2);width:24px;height:24px;border-radius:7px;cursor:pointer;font-family:var(--font);font-size:14px;line-height:1;padding:0;display:flex;align-items:center;justify-content:center;transition:.15s}
+.cnav:hover{background:rgba(255,255,255,.14);color:#fff}
+.cnav-today{font-size:9px;width:auto;padding:0 8px;height:24px;letter-spacing:.5px;font-weight:500}
+
+/* WIDGET CONTENUTI EDITORIALI */
+.sec-n{font-size:9px;color:var(--t3);letter-spacing:3px;font-weight:300;margin-right:10px;text-transform:uppercase;font-variant-numeric:tabular-nums}
+.sec-h{font-size:14px;font-weight:600;letter-spacing:-.2px;color:var(--text);text-transform:none}
+.sec-sub{font-size:9px;color:var(--t3);font-weight:400;letter-spacing:.2px;text-transform:none}
+.sec-bar{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:10px;flex-wrap:wrap}
+.sec-bar-l{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sec-bar-r{display:flex;align-items:center;gap:8px}
+
+/* CALENDARIO EDITORIALE tabellare */
+.ce-sub{font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:1.8px;font-weight:500;padding:10px 8px 6px}
+.ce-grid{display:grid;grid-template-columns:96px 110px 1fr 150px 110px;gap:14px;align-items:center;padding:11px 8px;font-size:10px;color:var(--t2);border-top:1px solid rgba(255,255,255,.05)}
+.ce-grid.ce-head{font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;font-weight:500;border-top:none;padding:6px 8px}
+.ce-d{font-size:11px;font-weight:500;color:var(--t3)}
+.ce-d b{color:var(--text);font-weight:600;margin-right:4px}
+.ce-d.hl b, .ce-d.hl{color:#FF6B35}
+.ce-d.mi b{color:#22C55E}
+.ce-d.mi{color:#22C55E}
+.ce-c b{display:block;color:var(--text);font-weight:500;font-size:11.5px;line-height:1.3;margin-bottom:3px}
+.ce-c .ce-meta{font-size:9px;color:var(--t3);font-weight:400}
+.ce-c.hl b{color:#FF6B35}
+.ce-c.mi b{color:#22C55E}
+.ce-pill{font-size:9px;font-weight:500;padding:5px 11px;border-radius:7px;display:inline-flex;align-items:center;gap:5px;justify-content:center;white-space:nowrap;letter-spacing:.2px}
+.ce-pill .dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+.cp-reel{color:#FF8A57;border:1px solid rgba(255,107,53,.32);background:rgba(255,107,53,.06)}
+.cp-reel .dot{background:#FF6B35}
+.cp-car{color:#5EE3B0;border:1px solid rgba(34,197,94,.28);background:rgba(34,197,94,.05)}
+.cp-wip{color:#FF8A57;border:1px solid rgba(255,107,53,.32);background:rgba(255,107,53,.06)}
+.cp-sys{color:#7AB6FF;border:1px solid rgba(59,130,246,.28);background:rgba(59,130,246,.05)}
+.cp-why{color:#A78BFA;border:1px solid rgba(167,139,250,.3);background:rgba(167,139,250,.06)}
+.cp-open{color:#F0C808;border:1px solid rgba(240,200,8,.3);background:rgba(240,200,8,.06)}
+.cp-mile{color:#5EE3B0;border:1px solid rgba(34,197,94,.32);background:rgba(34,197,94,.06)}
+.cp-st-conf{color:#5EE3B0;border:1px solid rgba(34,197,94,.32);background:transparent}
+.cp-st-prop{color:#7AB6FF;border:1px solid rgba(59,130,246,.32);background:transparent}
+.cp-st-pub{color:#86EFAC;border:1px solid rgba(34,197,94,.4);background:rgba(34,197,94,.12)}
+.cp-st-prod{color:#FDE68A;border:1px solid rgba(245,158,11,.32);background:transparent}
+
+/* CONTENT BANK */
+.cb-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.cb-card{padding:14px 15px;border-radius:13px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}
+.cb-tag{font-size:9px;color:#5EE3B0;font-weight:600;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.cb-body{font-size:13px;font-weight:400;line-height:1.4;color:var(--text);margin-bottom:8px;letter-spacing:-.1px}
+.cb-arrow{font-size:10px;color:var(--t3);font-weight:400;line-height:1.4}
+
+@media(max-width:1100px){
+  .ce-grid,.ce-grid.ce-head{grid-template-columns:80px 90px 1fr 110px 90px;gap:8px;font-size:9px}
+  .cb-grid{grid-template-columns:1fr}
+}
+
+/* MODAL */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
+.mo.sh{display:flex}
+.md{background:rgba(25,30,40,.95);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:22px;width:360px;max-width:100%}
+.md h3{font-size:15px;font-weight:500;margin-bottom:14px}
+.md label{font-size:8px;text-transform:uppercase;letter-spacing:1px;color:var(--t3);font-weight:500;margin-bottom:4px;display:block;margin-top:6px}
+.md input,.md select{width:100%;padding:10px 11px;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);color:#FFF;font-family:var(--font);font-size:11px;outline:none;transition:.15s}
+.md input:focus,.md select:focus{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.09)}
+.md-b{display:flex;gap:7px;margin-top:14px}
+.md-btn{flex:1;padding:10px;border-radius:9px;border:none;font-family:var(--font);font-size:11px;cursor:pointer;font-weight:500;transition:.15s}
+.md-p{background:#FF6B35;color:#FFF}.md-p:hover{background:#FF7B45}
+.md-c{background:transparent;color:var(--t2);border:1px solid rgba(255,255,255,.1)}
+.md-c:hover{background:rgba(255,255,255,.05)}
+
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(40px);background:rgba(20,25,35,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:9px 16px;font-size:10px;color:var(--text);z-index:200;opacity:0;transition:.3s;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.ft{text-align:center;padding:14px 0;font-size:8px;color:var(--t3);letter-spacing:1px;font-weight:300;text-transform:uppercase}
+
+@media(max-width:1100px){.r4{grid-template-columns:1fr 1fr}.r3c{grid-template-columns:1fr}.rg{grid-template-columns:repeat(3,1fr)}.ag{grid-template-columns:1fr 1fr}}
+@media(max-width:768px){
+  .sb{transform:translateX(-200px)}
+  .sb.show{transform:translateX(0)}
+  .sb-toggle{display:flex}
+  .mn{margin-left:0!important;padding:14px;padding-top:56px}
+  .r4,.r2{grid-template-columns:1fr}
+  .ag,.rg{grid-template-columns:1fr 1fr}
+  .rmh,.rmr{grid-template-columns:60px repeat(7,1fr)}
+  .rml{font-size:8px}
+  .rmb{font-size:8px;padding:5px 7px}
+  .rmtg,.rmdu{font-size:6px}
+  .hd h1{font-size:18px}
+}
+@media print{
+  body{background:#fff;color:#000}
+  .sb,.sb-toggle,.btn,.del-x,.ca,.rm-del{display:none!important}
+  .mn{margin-left:0!important;padding:0}
+  .w{break-inside:avoid;background:#f6f7f8;border:1px solid #ddd;color:#222}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sb" id="sidebar">
+  <button class="sb-close" onclick="toggleSB()" title="Chiudi sidebar">✕</button>
+  <div class="sb-brand">City Campus</div>
+  <div class="sb-sub">Dashboard</div>
+  <div class="sb-g">Overview</div>
+  <div class="sb-i on" data-fx="all"><span class="sb-ic">◉</span>Tutto</div>
+  <div class="sb-i" data-fx="cd"><span class="sb-ic">⏱</span>Countdown</div>
+  <div class="sb-i" data-fx="cal"><span class="sb-ic">▦</span>Calendario</div>
+  <div class="sb-i" data-fx="todo"><span class="sb-ic">☑</span>To-do</div>
+  <div class="sb-g">Contenuti</div>
+  <div class="sb-i" data-fx="ced"><span class="sb-ic">▤</span>Cal. editoriale</div>
+  <div class="sb-i" data-fx="cb"><span class="sb-ic">▹</span>Content Bank</div>
+  <div class="sb-i" data-fx="rub"><span class="sb-ic">◧</span>Rubriche</div>
+  <div class="sb-i" data-fx="aree"><span class="sb-ic">◈</span>Aree tematiche</div>
+  <div class="sb-i" data-fx="rt"><span class="sb-ic">◎</span>Real Talk</div>
+  <div class="sb-i" data-fx="perf"><span class="sb-ic">▤</span>Performance</div>
+  <div class="sb-g">Progetto</div>
+  <div class="sb-i" data-fx="rm"><span class="sb-ic">▥</span>Roadmap</div>
+  <div class="sb-i" data-fx="mesi"><span class="sb-ic">▧</span>Mesi</div>
+  <div class="sb-g">Calendario editoriale</div>
+  <div class="sc"><div class="sc-t"><span>Febbraio</span><span class="sc-tn">8</span></div><div class="sc-g" id="sf"></div></div>
+  <div class="sc"><div class="sc-t"><span>Marzo</span><span class="sc-tn">6</span></div><div class="sc-g" id="sm"></div></div>
+  <div class="sc"><div class="sc-t"><span>Aprile</span><span class="sc-tn">7</span></div><div class="sc-g" id="sa"></div></div>
+  <div class="sc"><div class="sc-t"><span>Maggio</span><span class="sc-tn" id="scMC">0</span></div><div class="sc-g" id="ss"></div></div>
+  <div class="sc"><div class="sc-t"><span>Giugno</span><span class="sc-tn" id="scGC">0</span></div><div class="sc-g" id="sg"></div></div>
+  <div class="sb-f"><div style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#FF6B35,#F0C808);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff">SG</div><div><div style="font-size:10px;font-weight:500">Sendy Gonzalez</div><div style="font-size:8px;color:var(--t3)">Digital Marketing</div></div></div></div>
+</aside>
+
+<main class="mn" id="main">
+  <button class="sb-toggle" id="sbToggle" onclick="toggleSB()">☰</button>
+  <div class="hd">
+    <div class="hd-l">
+      <div><h1>Dashboard</h1><p class="hd-d" id="hdDate">—</p></div>
+    </div>
+    <div class="hd-r">
+      <button class="btn" onclick="openM('event')">+ Evento</button>
+      <button class="btn" onclick="openM('todo')">+ To-do</button>
+      <button class="btn" onclick="window.print()">Esporta PDF</button>
+      <button class="btn warn" onclick="resetAll()" title="Cancella tutti i dati salvati">↺ Reset</button>
+    </div>
+  </div>
+
+  <div class="row r4">
+    <div class="w" data-w="mesi"><div class="sl">Pubblicati Feb — Apr</div><div class="sv">21</div><div class="ss">Storico stabile</div></div>
+    <div class="w" data-w="mesi"><div class="sl">Aprile</div><div class="sv" style="color:#FDE68A">7</div><div class="ss">Target ~8</div></div>
+    <div class="w" data-w="mesi"><div class="sl">Maggio · in corso</div><div class="sv" style="color:#86EFAC">8</div><div class="ss">+ Finanza · WIP Collaudo</div></div>
+    <div class="w" data-w="mesi"><div class="sl">Giugno · pianificati</div><div class="sv" style="color:#FF6B35">12</div><div class="ss">Open Day · arredi · render</div></div>
+  </div>
+
+  <div class="row r3c">
+    <div class="w cd" data-w="cd">
+      <div class="gl g1"></div><div class="gl g2"></div>
+      <div class="wt" style="position:relative;z-index:1">Countdown <span class="wb" id="cdC">0/0</span></div>
+      <div class="cd-n" id="dL">—</div>
+      <div class="cd-l">giorni all'apertura</div>
+      <div class="cd-evs" id="cdE"></div>
+      <div class="ca" style="margin-top:10px;position:relative;z-index:1" onclick="openM('countdown')">+ Aggiungi scadenza</div>
+    </div>
+
+    <div class="w" data-w="cal" style="position:relative">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap">
+        <div class="cv-tog">
+          <button id="vwW" onclick="setView('week')">Weekly</button>
+          <button id="vwM" class="on" onclick="setView('month')">Monthly</button>
+        </div>
+        <span class="wb" id="calC">0 eventi</span>
+      </div>
+      <div id="cvMonth">
+        <div style="margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:8px">
+            <button class="cnav" onclick="navMonth(-1)" title="Mese precedente">‹</button>
+            <div><span class="cm" id="cmName">Giugno</span> <span class="cy" id="cyName">2026</span></div>
+            <button class="cnav" onclick="navMonth(1)" title="Mese successivo">›</button>
+            <button class="cnav cnav-today" onclick="navToday()" title="Mese corrente">Oggi</button>
+          </div>
+          <div style="font-size:8px;color:var(--t3);letter-spacing:1px;text-transform:uppercase" id="cmTail">+ coda Mag</div>
+        </div>
+        <div class="cg" id="cG"></div>
+      </div>
+      <div id="cvWeek" style="display:none">
+        <div class="cw-bigday"><span class="cw-bigday-m" id="cwMon">Giugno</span><span class="cw-bigday-d" id="cwDay">11</span></div>
+        <div class="cw-week" id="cwGrid"></div>
+        <div class="cw-events" id="cwEv"></div>
+      </div>
+      <div class="ca" onclick="openM('event')">+ Aggiungi evento</div>
+      <div class="ev-popup" id="evP"></div>
+    </div>
+
+    <div class="w tb" data-w="todo">
+      <div class="wt">To-do <span class="wb" id="tD">0/0</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <div class="tp" id="tP">0%</div>
+        <div class="tps">completato</div>
+      </div>
+      <div class="tbar"><div class="tbf" id="tB" style="width:0%"></div></div>
+      <div id="tL"></div>
+      <div class="ca" onclick="openM('todo')" style="margin-top:8px">+ Aggiungi attività</div>
+    </div>
+  </div>
+
+  <div class="row r1"><div class="w" data-w="ced">
+    <div class="sec-bar">
+      <div class="sec-bar-l">
+        <span class="sec-n">02</span><span class="sec-h" id="cedTitle">Calendario Editoriale — Giugno 2026</span>
+      </div>
+      <div class="sec-bar-r">
+        <span class="sec-sub" id="cedSub">—</span>
+        <button class="cnav" onclick="navCed(-1)" title="Mese precedente">‹</button>
+        <button class="cnav cnav-today" onclick="navCedToday()" title="Mese corrente">Oggi</button>
+        <button class="cnav" onclick="navCed(1)" title="Mese successivo">›</button>
+      </div>
+    </div>
+    <div id="cedBody"></div>
+  </div></div>
+
+  <div class="row r1"><div class="w" data-w="rub">
+    <div class="wt">Rubriche <span class="wb">5 rubriche · stato a fine giugno</span></div>
+    <div class="rg">
+      <div class="rc r1c"><div><div class="rcn">Why We Do It</div><div class="rcd">3/6 → 6/6 fine Giu</div></div><div><div class="rcp">50%</div><div class="rb"><div class="rbf" style="width:50%"></div></div></div></div>
+      <div class="rc r2c"><div><div class="rcn">Real Talk</div><div class="rcd">2 pubb. · Virginia in Giu</div></div><div><div class="rcp">35%</div><div class="rb"><div class="rbf" style="width:35%"></div></div></div></div>
+      <div class="rc r3c_"><div><div class="rcn">Work in Progress</div><div class="rcd">~10 contenuti fino apertura</div></div><div><div class="rcp">70%</div><div class="rb"><div class="rbf" style="width:70%"></div></div></div></div>
+      <div class="rc r4c"><div><div class="rcn">Local Vibes</div><div class="rcd">Debutto Lun 22 Giu</div></div><div><div class="rcp">15%</div><div class="rb"><div class="rbf" style="width:15%"></div></div></div></div>
+      <div class="rc r5c"><div><div class="rcn">Save Your Spot</div><div class="rcd">4 contenuti · in crescita</div></div><div><div class="rcp">40%</div><div class="rb"><div class="rbf" style="width:40%"></div></div></div></div>
+    </div>
+  </div></div>
+
+  <div class="row r2">
+    <div class="w" data-w="aree">
+      <div class="wt">Aree tematiche · Fair Living <span class="wb">3/6 pubblicate</span></div>
+      <div class="ag">
+        <div class="ac osp"><div class="acn"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#22C55E;margin-right:6px;vertical-align:middle"></span>Ospitalità</div><div class="acs">Pubblicato</div><div class="acx">Carosello: spazi, stanze, appartamenti<br>Reel WIP: foto interni</div></div>
+        <div class="ac ene"><div class="acn"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#22C55E;margin-right:6px;vertical-align:middle"></span>Energia</div><div class="acs">Pubblicato</div><div class="acx">Carosello: classe A3, geotermico, nZEB<br>Real Talk: Doriano (collegamento)</div></div>
+        <div class="ac fin"><div class="acn"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#22C55E;margin-right:6px;vertical-align:middle"></span>Finanza</div><div class="acs">Pubblicato</div><div class="acx">"Da dove vengono le risorse"<br>Crowdinvesting · 194 soci</div></div>
+        <div class="ac cib"><div class="acn"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#F59E0B;margin-right:6px;vertical-align:middle"></span>Cibo</div><div class="acs">Da sviluppare · Lun 26 Mag</div><div class="acx">Bottega km zero, filiera equa<br>Produttori locali</div></div>
+        <div class="ac mob"><div class="acn"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#F59E0B;margin-right:6px;vertical-align:middle"></span>Mobilità</div><div class="acs">Da sviluppare · Gio 29 Mag</div><div class="acx">Ciclofficina, bike sharing<br>Connessioni urbane sostenibili</div></div>
+        <div class="ac cul"><div class="acn"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#F59E0B;margin-right:6px;vertical-align:middle"></span>Cultura</div><div class="acs">Da sviluppare · Ven 5 Giu</div><div class="acx">Eventi, laboratori, spazi aperti<br>Sesta e ultima area · 6/6</div></div>
+      </div>
+    </div>
+    <div class="w" data-w="rt">
+      <div class="wt">Real Talk <span class="wb">2 pubblicabili · pool 6</span></div>
+      <div class="rtr"><div class="rta" style="background:rgba(34,197,94,.2);color:#86EFAC">DS</div><div class="rti"><div class="rtn">Doriano Stevanon</div><div class="rto">Coordinatore · Energia</div></div><span class="rtt tok">Pubblicato</span></div>
+      <div class="rtr"><div class="rta" style="background:rgba(59,130,246,.2);color:#93C5FD">SC</div><div class="rti"><div class="rtn">Stefano Carraro · Gips</div><div class="rto">Fornitore · Mar 27 · Mer 28 Mag</div></div><span class="rtt tpr">Pronto · Da pub.</span></div>
+      <div class="rtr"><div class="rta" style="background:rgba(236,72,153,.2);color:#F9A8D4">VS</div><div class="rti"><div class="rtn">Virginia · Spazio Agorà</div><div class="rto">Progettista · Mer 17 · Ven 19 Giu</div></div><span class="rtt tpr">Pronto · Da pub.</span></div>
+      <div class="rtr"><div class="rta">NB</div><div class="rti"><div class="rtn">Nicola Bolcato · Agendo</div><div class="rto">Partner · Cultura · Luglio</div></div><span class="rtt twa">Da sviluppare</span></div>
+      <div class="rtr"><div class="rta">AP</div><div class="rti"><div class="rtn">Andrea · Pavimenti</div><div class="rto">Fornitore materiali · Luglio</div></div><span class="rtt twa">Da sviluppare</span></div>
+      <div class="rtr"><div class="rta">LE</div><div class="rti"><div class="rtn">Luigi · Elettrosystem</div><div class="rto">Fornitore tecnico · Post-apertura</div></div><span class="rtt twa">Da sviluppare</span></div>
+      <div class="rtr"><div class="rta">AS</div><div class="rti"><div class="rtn">Alberto Saccozza</div><div class="rto">Ingegnere · Post-apertura</div></div><span class="rtt twa">Da sviluppare</span></div>
+      <div class="rtr" style="opacity:.55"><div class="rta">TM</div><div class="rti"><div class="rtn">Tommy + Massi</div><div class="rto">Co-fondatori · a campus aperto</div></div><span class="rtt tof">Più avanti</span></div>
+    </div>
+  </div>
+
+  <div class="row r1"><div class="w" data-w="rm">
+    <div class="wt">Roadmap 2026 <span class="wb">Gen → Lug</span></div>
+    <div class="rmh"><div></div><div>Gen</div><div>Feb</div><div>Mar</div><div>Apr</div><div>Mag</div><div>Giu</div><div>Lug</div></div>
+    <div id="rmR"></div>
+    <div class="ca" onclick="openM('roadmap')" style="margin-top:8px">+ Aggiungi attività</div>
+  </div></div>
+
+  <div class="row r1"><div class="w" data-w="cb">
+    <div class="sec-bar">
+      <div><span class="sec-n">05</span><span class="sec-h">Content Bank · Presentazione City Campus 2026</span></div>
+      <span class="sec-sub">8 idee estratte dalla presentazione</span>
+    </div>
+    <div class="cb-grid">
+      <div class="cb-card">
+        <div class="cb-tag">Foto cantiere reali · pp. 8–10</div>
+        <div class="cb-body">Corte Giardino, interni, stanze, corridoi, bagni — foto autentiche</div>
+        <div class="cb-arrow">→ 2–3 WIP reel / Save Your Spot carousel</div>
+      </div>
+      <div class="cb-card">
+        <div class="cb-tag">Render appartamenti · pp. 11–12</div>
+        <div class="cb-body">Stanze singole e doppie, spazi studio condivisi, scale, luce naturale</div>
+        <div class="cb-arrow">→ Carousel "Ecco dove vivrai" · Save Your Spot</div>
+      </div>
+      <div class="cb-card">
+        <div class="cb-tag">Render caffetteria · p. 13</div>
+        <div class="cb-body">Cucina condivisa aperta alla comunità: studenti, residenti e cittadini</div>
+        <div class="cb-arrow">→ Carousel Cibo + Local Vibes · "Uno spazio che respira con la città"</div>
+      </div>
+      <div class="cb-card">
+        <div class="cb-tag">Impatto numerico · p. 7</div>
+        <div class="cb-body">–73,5% consumi · –88,5% CO₂ · 5.600 alberi equiv. · 8 posti sperimentali</div>
+        <div class="cb-arrow">→ Energia carousel · Why We Do It · dati post-apertura</div>
+      </div>
+      <div class="cb-card">
+        <div class="cb-tag">Contesto mercato · p. 3</div>
+        <div class="cb-body">9,92% offerta vs domanda studentesca a Vicenza — dato reale e concreto</div>
+        <div class="cb-arrow">→ Hook carousel "Perché City Campus esiste" · Why We Do It</div>
+      </div>
+      <div class="cb-card">
+        <div class="cb-tag">Open Day programma · p. 22</div>
+        <div class="cb-body">11 giugno 18:30–21:30 · 3 slot: visita cantiere, presentazione, buffet</div>
+        <div class="cb-arrow">→ 2–3 post dedicati: annuncio (1 Giu) · reminder (8 Giu) · live (11 Giu)</div>
+      </div>
+      <div class="cb-card">
+        <div class="cb-tag">Quote milestone · p. 11</div>
+        <div class="cb-body">“Campus Margherita non è un dormitorio. È un modo diverso di abitare Vicenza.”</div>
+        <div class="cb-arrow">→ Caption post apertura · Milestone reel fine giugno</div>
+      </div>
+      <div class="cb-card">
+        <div class="cb-tag">Rete territoriale · p. 15</div>
+        <div class="cb-body">60+ organizzazioni attive sul territorio: cooperativa, terzo settore, imprese</div>
+        <div class="cb-arrow">→ Carousel comunità / Finanza · "Non costruiamo da soli"</div>
+      </div>
+    </div>
+  </div></div>
+
+  <div class="row r2">
+    <div class="w" data-w="perf">
+      <div class="wt">Performance Instagram <span class="wb">ultimi 20 post</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+        <div class="ps"><div class="pn">631</div><div class="pl">Media</div></div>
+        <div class="ps"><div class="pn" style="color:#FF6B35">2104</div><div class="pl">Best</div></div>
+        <div class="ps"><div class="pn">312</div><div class="pl">Min</div></div>
+      </div>
+      <div class="cw"><canvas id="cV"></canvas></div>
+    </div>
+    <div class="w" data-w="mesi">
+      <div class="wt">CONTENUTI PER MESE
+TARGET 8/MESE
+</div>
+      <div class="cw"><canvas id="cM"></canvas></div>
+    </div>
+  </div>
+  <div class="ft">City Campus · Dashboard Social · Sendy Gonzalez · v8 · Maggio–Giugno 2026</div>
+</main>
+</div>
+
+<div class="mo" id="modal"><div class="md">
+  <h3 id="mT">Aggiungi</h3>
+  <label>Nome</label>
+  <input type="text" id="mI" placeholder="Es. Post Finanza...">
+  <label id="mDl">Data</label>
+  <input type="date" id="mD">
+  <label id="mCl">Categoria</label>
+  <select id="mC">
+    <option value="social">Social Media</option>
+    <option value="seo">SEO</option>
+    <option value="landing">Landing Page</option>
+    <option value="ads">Campagne Ads</option>
+    <option value="open">Open Day</option>
+    <option value="altro">Altro</option>
+  </select>
+  <label id="mPl" style="display:none">Priorità</label>
+  <select id="mP" style="display:none">
+    <option value="h">Alta</option>
+    <option value="m">Media</option>
+    <option value="l">Bassa</option>
+  </select>
+  <label id="mClrL" style="display:none">Colore</label>
+  <select id="mClr" style="display:none">
+    <option value="orange">🟠 Arancio — Lancio / Apertura</option>
+    <option value="blue">🔵 Blu — Open Day / Eventi</option>
+    <option value="pink">🩷 Rosa — Real Talk / Interviste</option>
+    <option value="green">🟢 Verde — Pubblicazione</option>
+    <option value="purple">🟣 Viola — Campagne Ads</option>
+    <option value="yellow">🟡 Giallo — Riunioni / Call</option>
+    <option value="red">🔴 Rosso — Scadenza</option>
+  </select>
+  <label id="mFromL" style="display:none">Da (mese 1–12)</label>
+  <select id="mFrom" style="display:none">
+    <option value="1">Gen</option><option value="2">Feb</option><option value="3">Mar</option><option value="4">Apr</option><option value="5">Mag</option><option value="6">Giu</option>
+    <option value="7">Lug</option><option value="8">Ago</option><option value="9">Set</option><option value="10">Ott</option><option value="11">Nov</option><option value="12">Dic</option>
+  </select>
+  <label id="mToL" style="display:none">A (mese 1–12)</label>
+  <select id="mTo" style="display:none">
+    <option value="1">Gen</option><option value="2">Feb</option><option value="3">Mar</option><option value="4">Apr</option><option value="5">Mag</option><option value="6">Giu</option>
+    <option value="7">Lug</option><option value="8">Ago</option><option value="9">Set</option><option value="10">Ott</option><option value="11">Nov</option><option value="12">Dic</option>
+  </select>
+  <label id="mDurL" style="display:none">Etichetta durata</label>
+  <input type="text" id="mDur" placeholder="Es. 3 mesi" style="display:none">
+  <div class="md-b">
+    <button class="md-btn md-c" onclick="closeM()">Annulla</button>
+    <button class="md-btn md-p" onclick="addItem()">Aggiungi</button>
+  </div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// Silence harmless Chart.js ResizeObserver loop warning (browser-internal benign noise)
+(function(){
+  const swallow = (e)=>{ const m = (e && (e.message || e.reason && e.reason.message)) || ''; if(m.indexOf('ResizeObserver loop')!==-1){ e.stopImmediatePropagation && e.stopImmediatePropagation(); e.preventDefault && e.preventDefault(); return true; } };
+  window.addEventListener('error', swallow, true);
+  const origErr = console.error;
+  console.error = function(){ const a = arguments[0]; if(typeof a === 'string' && a.indexOf('ResizeObserver loop')!==-1) return; return origErr.apply(console, arguments); };
+})();
+/* ============== STATE + STORAGE ============== */
+const LS_KEY = 'cityCampusDashboard.v8';
+const DEFAULT_STATE = {
+  todos: [
+    {id:'t1', name:'Sviluppare carosello Cibo · Mobilità · Cultura', pri:'h', done:false},
+    {id:'t2', name:'Pubblicare Real Talk Doriano Stevanon',         pri:'h', done:false},
+    {id:'t3', name:'Pubblicare Real Talk Carraro Gips',              pri:'h', done:false},
+    {id:'t4', name:'Landing Page Campus Margherita · WuBook',        pri:'h', done:false},
+    {id:'t5', name:'Google Business Profile Margherita',             pri:'m', done:false},
+    {id:'t6', name:'Setup Google Search Console',                    pri:'h', done:false},
+    {id:'t7', name:'Campagna Meta Ads · fase lancio giugno',         pri:'m', done:false},
+    {id:'t8', name:'Comunicazione Open Day 11 giugno',               pri:'h', done:false},
+    {id:'t9', name:'Intervista Virginia · contatto OK pubblicazione',pri:'m', done:false},
+    {id:'t10',name:'YouTube Giugno · video integrale Virginia',      pri:'l', done:false}
+  ],
+  countdownEvents: [
+    {id:'c1', name:'Sviluppare carosello Cibo · Mobilità · Cultura', done:false, fixed:false},
+    {id:'c2', name:'Pubblicare Real Talk Doriano Stevanon',          done:false, fixed:false},
+    {id:'c3', name:'Pubblicare Real Talk Carraro Gips',              done:false, fixed:false},
+    {id:'c4', name:'Landing Page Margherita · widget WuBook',        done:false, fixed:false},
+    {id:'c5', name:'GBP Margherita · attivare verifica',             done:false, fixed:false},
+    {id:'cf1', name:'1 Giu · Arrivo arredi',                         done:false, fixed:true, color:'#22C55E'},
+    {id:'cf2', name:'3 Giu · Montaggio arredi',                      done:false, fixed:true, color:'#22C55E'},
+    {id:'cf3', name:'11 Giu · Open Day · Raccolta 120.000€',         done:false, fixed:true, color:'#EF4444'},
+    {id:'cf4', name:'Inizio Lug · Agibilità e apertura',             done:false, fixed:true, color:'#FF6B35'},
+    {id:'cf5', name:'8 Lug · Open Day Università Vicenza',           done:false, fixed:true, color:'#8B5CF6'}
+  ],
+  calEvents: {
+    // coda Maggio 25–31
+    '5-26': [{name:'AREA: Cibo', color:'orange'}],
+    '5-27': [{name:'RT Carraro Gips', color:'pink'}],
+    '5-28': [{name:'RT Carraro · Reel', color:'pink'}],
+    '5-29': [{name:'AREA: Mobilità', color:'orange'}],
+    '5-30': [{name:'WIP arredi · countdown', color:'green'}],
+    '5-31': [{name:'Save the date Open Day', color:'blue'}],
+    // Giugno 2026 — 12 contenuti + eventi reali
+    '6-1':  [{name:'WIP · Arrivano arredi', color:'green'}],
+    '6-3':  [{name:'WIP · Montaggio arredi', color:'green'}],
+    '6-5':  [{name:'AREA: Cultura · 6/6', color:'orange'}],
+    '6-8':  [{name:'Open Day · Invito', color:'blue'}],
+    '6-10': [{name:'Open Day · countdown', color:'blue'}],
+    '6-11': [{name:'OPEN DAY · 120k€', color:'red'}],
+    '6-12': [{name:'Open Day recap', color:'green'}],
+    '6-15': [{name:'Render stanze', color:'purple'}],
+    '6-17': [{name:'RT Virginia · Carosello', color:'pink'}],
+    '6-19': [{name:'RT Virginia · Reel', color:'pink'}],
+    '6-22': [{name:'Perché Vicenza · Local Vibes', color:'yellow'}],
+    '6-24': [{name:'WIP · quasi casa', color:'green'}],
+    '6-26': [{name:'Come prenotare', color:'blue'}],
+    // Luglio anticipazioni
+    '7-8':  [{name:'Open Day Università Vicenza', color:'purple'}]
+  },
+  roadmap: [
+    {id:'r1', label:'Social Media',  from:1, to:8, color:'green-strong', subs:['Piano editoriale','Produzione','Pubblicazione'], dur:'6 mesi', fixed:true},
+    {id:'r2', label:'SEO',           from:1, to:8, color:'green',        subs:['Audit','On-page','Informaz.','Transaz.','Local'], dur:'6 mesi', fixed:true},
+    {id:'r3', label:'Sito Web',      from:1, to:8, color:'green-soft',   subs:['Analisi','Straordinaria','Ordinaria'], dur:'6 mesi', fixed:true},
+    {id:'r4', label:'Landing Page',  from:4, to:8, color:'orange',       subs:['Wireframe','Sviluppo','Live'], dur:'3 mesi', fixed:true},
+    {id:'r5', label:'Campagne Ads',  from:4, to:8, color:'purple',       subs:['Engagement','Notorietà','Lancio'], dur:'3 mesi', fixed:true},
+    {id:'r6', label:'Open Day',      from:6, to:8, color:'blue',         subs:['Giugno','Luglio'], dur:'2 mesi', fixed:true},
+    {id:'r7', label:'Apertura',      from:6, to:7, color:'diamond',      subs:[], dur:'', fixed:true}
+  ]
+};
+let state = loadState();
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return JSON.parse(JSON.stringify(DEFAULT_STATE));
+    const s = JSON.parse(raw);
+    // shallow merge missing defaults so adding new fields stays safe
+    return {
+      todos: s.todos || DEFAULT_STATE.todos,
+      countdownEvents: s.countdownEvents || DEFAULT_STATE.countdownEvents,
+      calEvents: s.calEvents || {},
+      roadmap: s.roadmap || DEFAULT_STATE.roadmap
+    };
+  }catch(e){
+    console.warn('State load failed, using defaults', e);
+    return JSON.parse(JSON.stringify(DEFAULT_STATE));
+  }
+}
+function saveState(){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+  catch(e){ console.warn('Save failed', e); }
+}
+function uid(p){ return p+Math.random().toString(36).slice(2,8); }
+
+function resetAll(){
+  if(!confirm('Cancellare tutti i dati salvati e ripristinare i valori iniziali?')) return;
+  localStorage.removeItem(LS_KEY);
+  state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+  renderAll();
+  toast('Dati ripristinati');
+}
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._h);
+  t._h = setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+/* ============== DATE / COUNTDOWN ============== */
+const OPENING = new Date(2026,6,1); // 1 luglio 2026 — agibilità e apertura
+function fmtDate(d){
+  const ms = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+  return d.getDate()+' '+ms[d.getMonth()]+' '+d.getFullYear();
+}
+function updateCD(){
+  const now = new Date();
+  const days = Math.max(0, Math.ceil((OPENING - now)/86400000));
+  document.getElementById('dL').textContent = days;
+  document.getElementById('hdDate').textContent = fmtDate(now);
+}
+
+/* ============== SIDEBAR ============== */
+function toggleSB(){
+  const sb = document.getElementById('sidebar');
+  const mn = document.getElementById('main');
+  if(window.matchMedia('(max-width:768px)').matches){
+    sb.classList.toggle('show');
+  } else {
+    sb.classList.toggle('hidden');
+    mn.classList.toggle('full');
+    document.getElementById('sbToggle').classList.toggle('show', sb.classList.contains('hidden'));
+  }
+}
+
+document.querySelectorAll('.sb-i').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    document.querySelectorAll('.sb-i').forEach(s=>s.classList.remove('on'));
+    el.classList.add('on');
+    const id = el.dataset.fx;
+    const ws = document.querySelectorAll('.w');
+    if(id==='all'){
+      ws.forEach(w=>w.classList.remove('dim'));
+      window.scrollTo({top:0,behavior:'smooth'});
+    } else {
+      ws.forEach(w=>w.classList.toggle('dim', w.dataset.w!==id));
+      const t = document.querySelector('[data-w="'+id+'"]:not(.dim)');
+      if(t) t.scrollIntoView({behavior:'smooth',block:'center'});
+    }
+    if(window.matchMedia('(max-width:768px)').matches) document.getElementById('sidebar').classList.remove('show');
+  });
+});
+
+/* ============== TODO ============== */
+function renderTodo(){
+  const list = document.getElementById('tL');
+  list.innerHTML = '';
+  state.todos.forEach(t=>{
+    const pc = t.pri==='h'?'pri-h':t.pri==='m'?'pri-m':'pri-l';
+    const pl = t.pri==='h'?'Alta':t.pri==='m'?'Media':'Bassa';
+    const bc = t.pri==='h'?'#EF4444':t.pri==='m'?'#F59E0B':'#22C55E';
+    const d = document.createElement('div');
+    d.className = 'ti';
+    d.innerHTML = '<div class="tc'+(t.done?' dn':'')+'" style="border-color:'+bc+'"></div>'
+                + '<div class="tl'+(t.done?' sk':'')+'"></div>'
+                + '<span class="pri '+pc+'">'+pl+'</span>'
+                + '<button class="del-x" title="Elimina">×</button>';
+    d.querySelector('.tl').textContent = t.name;
+    d.querySelector('.tc').onclick = ()=>{ t.done = !t.done; saveState(); renderTodo(); };
+    d.querySelector('.del-x').onclick = (e)=>{ e.stopPropagation(); state.todos = state.todos.filter(x=>x.id!==t.id); saveState(); renderTodo(); };
+    list.appendChild(d);
+  });
+  const total = state.todos.length;
+  const done = state.todos.filter(t=>t.done).length;
+  const pct = total ? Math.round(done/total*100) : 0;
+  document.getElementById('tP').textContent = pct+'%';
+  document.getElementById('tD').textContent = done+'/'+total;
+  document.getElementById('tB').style.width = pct+'%';
+}
+
+/* ============== COUNTDOWN EVENTS ============== */
+function renderCountdown(){
+  const wrap = document.getElementById('cdE');
+  wrap.innerHTML = '';
+  let firstFixed = true;
+  state.countdownEvents.forEach(ev=>{
+    if(ev.fixed && firstFixed){
+      const sep = document.createElement('div');
+      sep.style.cssText = 'border-top:1px solid rgba(255,255,255,.06);margin-top:6px;padding-top:6px;font-size:7px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.25);font-weight:500;margin-bottom:2px';
+      sep.textContent = 'Scadenze fisse';
+      wrap.appendChild(sep);
+      firstFixed = false;
+    }
+    const row = document.createElement('div');
+    row.className = 'cd-ev'+(ev.done?' dn':'');
+    const ck = document.createElement('div');
+    ck.className = 'cd-ck'+(ev.done?' dn':'');
+    if(ev.fixed && ev.color){ ck.style.borderColor = ev.color; }
+    ck.onclick = ()=>{ if(!ev.fixed){ ev.done = !ev.done; saveState(); renderCountdown(); } };
+    if(ev.fixed) ck.style.cursor = 'default';
+    const tx = document.createElement('span');
+    tx.className = 'cd-tx';
+    tx.textContent = ev.name;
+    if(ev.fixed) tx.style.color = 'var(--text)';
+    tx.onclick = ()=>{ if(!ev.fixed){ ev.done = !ev.done; saveState(); renderCountdown(); } };
+    row.appendChild(ck);
+    row.appendChild(tx);
+    if(!ev.fixed){
+      const del = document.createElement('button');
+      del.className = 'del-x';
+      del.textContent = '×';
+      del.onclick = (e)=>{ e.stopPropagation(); state.countdownEvents = state.countdownEvents.filter(x=>x.id!==ev.id); saveState(); renderCountdown(); };
+      row.appendChild(del);
+    }
+    wrap.appendChild(row);
+  });
+  const tot = state.countdownEvents.filter(e=>!e.fixed).length;
+  const dn  = state.countdownEvents.filter(e=>!e.fixed && e.done).length;
+  document.getElementById('cdC').textContent = dn+'/'+tot;
+}
+
+/* ============== CALENDAR (navigabile) ============== */
+let calView = 'month'; // 'month' | 'week'
+let displayYear = 2026, displayMonth = 6; // mese visualizzato
+let calSelDay = '6-11'; // chiave M-D — default Open Day
+
+function setView(v){
+  calView = v;
+  document.getElementById('vwM').classList.toggle('on', v==='month');
+  document.getElementById('vwW').classList.toggle('on', v==='week');
+  document.getElementById('cvMonth').style.display = v==='month'?'block':'none';
+  document.getElementById('cvWeek').style.display  = v==='week' ?'block':'none';
+  buildCal();
+}
+
+function navMonth(delta){
+  let m = displayMonth + delta, y = displayYear;
+  if(m<1){ m=12; y--; }
+  if(m>12){ m=1; y++; }
+  displayMonth = m; displayYear = y;
+  buildCal();
+}
+function navToday(){
+  const t = new Date();
+  displayYear = t.getFullYear(); displayMonth = t.getMonth()+1;
+  // se siamo nel 2026 mostriamo già il mese corrente; per default forziamo Giugno se anno != 2026
+  if(displayYear!==2026){ displayYear=2026; displayMonth=6; }
+  buildCal();
+}
+
+const COLOR_NAMES = {orange:'Arancio', blue:'Blu', pink:'Rosa', green:'Verde', purple:'Viola', yellow:'Giallo', red:'Rosso'};
+const MONTH_NAMES = ['','Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+const MONTH_SHORT = ['','Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+
+function normEv(e){ if(typeof e === 'string') return {name:e, color:'orange'}; return {name:e.name||'', color:e.color||'orange'}; }
+function evKey(m,d){ return m+'-'+d; }
+function parseKey(k){ const [m,d]=k.split('-').map(Number); return {m,d}; }
+
+// 42 celle: prev tail (>=7gg) + mese + next tail
+function getMonthCells(year, month){
+  const cells = [];
+  const first = new Date(year, month-1, 1);
+  let dow = (first.getDay() + 6) % 7; // 0=Lun..6=Dom
+  const prevMonth = month===1 ? 12 : month-1;
+  const prevYear  = month===1 ? year-1 : year;
+  const prevDays  = new Date(prevYear, prevMonth, 0).getDate();
+  // Mostra sempre coda del mese precedente: almeno 7 giorni se dow===0, altrimenti dow giorni
+  const tailCount = (dow === 0 ? 7 : dow);
+  for(let i=tailCount-1; i>=0; i--){
+    cells.push({m:prevMonth, d:prevDays-i, y:prevYear, otherMonth:true});
+  }
+  const curDays = new Date(year, month, 0).getDate();
+  for(let d=1; d<=curDays; d++){
+    cells.push({m:month, d, y:year, otherMonth:false});
+  }
+  const nextMonth = month===12 ? 1 : month+1;
+  const nextYear  = month===12 ? year+1 : year;
+  let nd = 1;
+  while(cells.length < 42){
+    cells.push({m:nextMonth, d:nd++, y:nextYear, otherMonth:true});
+  }
+  return cells;
+}
+
+function buildCal(){
+  if(calView === 'month') buildMonthView();
+  else buildWeekView();
+  let totEv = 0;
+  Object.values(state.calEvents).forEach(arr=>totEv+=arr.length);
+  document.getElementById('calC').textContent = totEv+' event'+(totEv===1?'o':'i');
+  const mayCount = Object.keys(state.calEvents).filter(k=>k.startsWith('5-')).reduce((a,k)=>a+state.calEvents[k].length,0);
+  const giuCount = Object.keys(state.calEvents).filter(k=>k.startsWith('6-')).reduce((a,k)=>a+state.calEvents[k].length,0);
+  document.getElementById('scMC').textContent = mayCount;
+  const sg = document.getElementById('scGC'); if(sg) sg.textContent = giuCount;
+  buildSidebarMiniCals();
+}
+
+function buildMonthView(){
+  const cmName = document.getElementById('cmName'); if(cmName) cmName.textContent = MONTH_NAMES[displayMonth];
+  const cyName = document.getElementById('cyName'); if(cyName) cyName.textContent = displayYear;
+  const cmTail = document.getElementById('cmTail');
+  if(cmTail){
+    const prevM = displayMonth===1?12:displayMonth-1;
+    cmTail.textContent = '+ coda ' + MONTH_SHORT[prevM];
+  }
+  const g = document.getElementById('cG');
+  g.innerHTML = '';
+  ['L','M','M','G','V','S','D'].forEach(d=>{
+    const e = document.createElement('div');
+    e.className = 'cdl';
+    e.textContent = d;
+    g.appendChild(e);
+  });
+  const today = new Date();
+  const ty = today.getFullYear(), tm = today.getMonth()+1, td = today.getDate();
+  const cells = getMonthCells(displayYear, displayMonth);
+  cells.forEach(({m,d,y,otherMonth})=>{
+    const e = document.createElement('div');
+    e.className = 'cc';
+    if(y===ty && m===tm && d===td) e.classList.add('td');
+    if(otherMonth) e.style.opacity = '.45';
+    const k = evKey(m,d);
+    const arr = (y===2026) ? state.calEvents[k] : null;
+    let lbl = '';
+    if(arr && arr.length){
+      const first = normEv(arr[0]);
+      lbl = first.name;
+      e.classList.add('has-badge', 'bg-'+first.color);
+    }
+    const num = document.createElement('div');
+    num.className = 'cc-num';
+    num.textContent = d;
+    e.appendChild(num);
+    if(arr && arr.length){
+      const lab = document.createElement('div');
+      lab.className = 'cc-lbl';
+      lab.textContent = lbl;
+      e.appendChild(lab);
+    }
+    e.onclick = (ev)=>{ ev.stopPropagation(); showDE(k, e); };
+    g.appendChild(e);
+  });
+}
+
+function buildWeekView(){
+  const grid = document.getElementById('cwGrid');
+  grid.innerHTML = '';
+  const sel = parseKey(calSelDay);
+  const cells = getMonthCells(displayYear, displayMonth);
+  let selIdx = cells.findIndex(c=>c.m===sel.m && c.d===sel.d);
+  if(selIdx < 0) selIdx = cells.findIndex(c=>!c.otherMonth);
+  const rowStart = selIdx - (selIdx % 7);
+  const dnames = ['L','M','M','G','V','S','D'];
+  for(let i=0;i<7;i++){
+    const cell = document.createElement('div');
+    cell.className = 'cw-day';
+    const c = cells[rowStart+i];
+    if(!c){
+      cell.style.opacity = '.25';
+      cell.style.pointerEvents = 'none';
+      cell.innerHTML = '<div class="cw-day-dn">'+dnames[i]+'</div><div class="cw-day-num">·</div>';
+    } else {
+      const k = evKey(c.m,c.d);
+      const isSel = k === calSelDay;
+      if(isSel) cell.classList.add('td');
+      if(c.otherMonth) cell.style.opacity = '.55';
+      const arr = (c.y===2026) ? state.calEvents[k] : null;
+      if(arr && arr.length) cell.classList.add('has-ev');
+      cell.innerHTML = '<div class="cw-day-dn">'+dnames[i]+'</div><div class="cw-day-num">'+c.d+'</div><div class="cw-day-dot"></div>';
+      cell.onclick = ()=>{ calSelDay = k; buildCal(); };
+    }
+    grid.appendChild(cell);
+  }
+  document.getElementById('cwDay').textContent = sel.d;
+  document.getElementById('cwMon').textContent = MONTH_NAMES[sel.m];
+  const ev = document.getElementById('cwEv');
+  const arr = state.calEvents[calSelDay] || [];
+  if(!arr.length){
+    ev.innerHTML = '<div class="cw-empty">Nessun evento — clicca "+ Aggiungi evento"</div>';
+  } else {
+    ev.innerHTML = '';
+    arr.forEach((raw,i)=>{
+      const x = normEv(raw);
+      const row = document.createElement('div');
+      row.className = 'cw-ev-row';
+      row.innerHTML = '<div class="cw-ev-dot" style="background:'+colorHex(x.color)+'"></div><div style="flex:1">'+escapeHtml(x.name)+'</div><button class="del-x">×</button>';
+      row.querySelector('.del-x').onclick = ()=>{
+        state.calEvents[calSelDay].splice(i,1);
+        if(!state.calEvents[calSelDay].length) delete state.calEvents[calSelDay];
+        saveState();
+        buildCal();
+      };
+      ev.appendChild(row);
+    });
+  }
+}
+
+function colorHex(c){
+  return ({orange:'#FF6B35',blue:'#3B82F6',pink:'#EC4899',green:'#22C55E',purple:'#8B5CF6',yellow:'#F0C808',red:'#EF4444'})[c]||'#FF6B35';
+}
+
+function showDE(key, el){
+  const p = document.getElementById('evP');
+  if(p.classList.contains('show') && p.dataset.key === key){
+    p.classList.remove('show');
+    return;
+  }
+  p.dataset.key = key;
+  const {m,d} = parseKey(key);
+  const evs = state.calEvents[key] || [];
+  let h = '<h4>'+d+' '+MONTH_NAMES[m].toLowerCase()+' 2026</h4>';
+  if(!evs.length){
+    h += '<div style="color:var(--t3);font-size:9px;padding:4px 0">Nessun evento</div>';
+  } else {
+    evs.forEach((raw,i)=>{
+      const x = normEv(raw);
+      h += '<div class="ev-popup-item"><span style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:2px;background:'+colorHex(x.color)+';display:inline-block"></span>'+escapeHtml(x.name)+'</span><button class="del-x px" data-i="'+i+'" data-k="'+key+'">×</button></div>';
+    });
+  }
+  h += '<div style="margin-top:8px;cursor:pointer;color:#FF6B35;font-size:10px;font-weight:500;padding-top:6px;border-top:1px solid rgba(255,255,255,.06)" onclick="closeP();openM(\'event\',\''+key+'\')">+ Aggiungi evento</div>';
+  p.innerHTML = h;
+  p.querySelectorAll('.del-x').forEach(b=>{
+    b.onclick = (ev)=>{
+      ev.stopPropagation();
+      const k = b.dataset.k, ix = parseInt(b.dataset.i);
+      state.calEvents[k].splice(ix,1);
+      if(!state.calEvents[k].length) delete state.calEvents[k];
+      saveState();
+      buildCal();
+      closeP();
+    };
+  });
+  const r = el.getBoundingClientRect();
+  const pr = el.closest('.w').getBoundingClientRect();
+  p.style.left = Math.min(Math.max(8, r.left - pr.left), pr.width - 220) + 'px';
+  p.style.top  = (r.bottom - pr.top + 6) + 'px';
+  p.classList.add('show');
+}
+function closeP(){ document.getElementById('evP').classList.remove('show'); }
+
+function escapeHtml(s){return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+/* ============== SIDEBAR MINI CALS ============== */
+function buildSidebarMiniCals(){
+  const mayDays = Object.keys(state.calEvents).filter(k=>k.startsWith('5-')).map(k=>+k.split('-')[1]);
+  const giuDays = Object.keys(state.calEvents).filter(k=>k.startsWith('6-')).map(k=>+k.split('-')[1]);
+  const months = [
+    {id:'sf', d:28, s:6, p:[3,5,9,11,16,18,23,25]},
+    {id:'sm', d:31, s:6, p:[2,9,16,20,26,30]},
+    {id:'sa', d:30, s:2, p:[1,7,14,17,22,25,28]},
+    {id:'ss', d:31, s:4, p:mayDays},
+    {id:'sg', d:30, s:0, p:giuDays}
+  ];
+  months.forEach(m=>{
+    const g = document.getElementById(m.id);
+    if(!g) return;
+    g.innerHTML = '';
+    for(let i=0;i<m.s;i++){ const e=document.createElement('div'); e.className='sc-d e'; g.appendChild(e); }
+    for(let d=1; d<=m.d; d++){ const e=document.createElement('div'); e.className='sc-d '+(m.p.includes(d)?'p':'o'); g.appendChild(e); }
+  });
+}
+
+/* ============== EDITORIAL CALENDAR (data-driven, navigabile) ============== */
+let cedYear = 2026, cedMonth = 6;
+const CED_RUBRICS = {
+  wip:  {cls:'cp-wip',  label:'Work in Progress'},
+  sys:  {cls:'cp-sys',  label:'Save Your Spot'},
+  why:  {cls:'cp-why',  label:'Why We Do It'},
+  open: {cls:'cp-open', label:'Open Day'},
+  mile: {cls:'cp-mile', label:'Milestone'},
+  rt:   {cls:'cp-why',  label:'Real Talk'},
+  lv:   {cls:'cp-open', label:'Local Vibes'}
+};
+const CED_STATUS = {
+  pub:  {cls:'cp-st-pub',  label:'Pubblicato'},
+  conf: {cls:'cp-st-conf', label:'Confermato'},
+  prop: {cls:'cp-st-prop', label:'Proposta'},
+  prod: {cls:'cp-st-prod', label:'Da produrre'}
+};
+const EDITORIAL = {
+  '2026-5': {
+    sub: '6 contenuti · ultima settimana di Maggio',
+    sections: [
+      {label:'Maggio 2026 — ultima settimana', rows:[
+        {date:['Lun 26','Mag'], format:'car',  title:'AREA: Cibo — Bottega km zero, filiera equa, produttori locali', meta:'Why We Do It · Studenti + Impatto', rubric:'why',  status:'prod'},
+        {date:['Mar 27','Mag'], format:'car',  title:'Real Talk Carraro Gips — Stefano racconta materiali e visione artigianale', meta:'Real Talk · Fornitore',   rubric:'rt',   status:'conf'},
+        {date:['Mer 28','Mag'], format:'reel', title:'Real Talk Carraro Gips — estratto video intervista',                              meta:'Real Talk · Secondo formato', rubric:'rt', status:'conf'},
+        {date:['Gio 29','Mag'], format:'car',  title:'AREA: Mobilità — Ciclofficina, bike sharing, connessioni urbane sostenibili',     meta:'Why We Do It · Studenti + Impatto', rubric:'why', status:'prod'},
+        {date:['Ven 30','Mag'], format:'reel', title:'WIP — “Gli arredi stanno arrivando” · countdown',                                 meta:'Work in Progress · arredi 1 Giu',  rubric:'wip', status:'conf'},
+        {date:['Sab 31','Mag'], format:'car',  title:'Save the date Open Day — 11 giugno, programma serata, render interni',           meta:'Save Your Spot · Prima promozione', rubric:'sys', status:'conf'}
+      ]}
+    ]
+  },
+  '2026-6': {
+    sub: '8 contenuti · Open Day 11/06 · 4 carousel + 4 reel',
+    sections: [
+      {label:'↑ Maggio — Contenuti rimanenti (confermati)', rows:[
+        {date:['Lun 26','Mag'], format:'reel', title:'Ultimi ritocchi — il cantiere è quasi finito',                meta:'Work in Progress · Soci + Tutti', rubric:'wip', status:'conf'},
+        {date:['Ven 30','Mag'], format:'car',  title:'Ci siamo quasi — recap 6 pilastri + CTA forte',                meta:'Save Your Spot · Tutti',          rubric:'sys', status:'conf'}
+      ]},
+      {label:'Giugno 2026 — Apertura e Open Day · Proposta', rows:[
+        {date:['Lun 1','Giu'],  format:'car',  title:'Area Cibo — Bottega km zero, filiera corta, produttori locali',          meta:'Why We Do It · Studenti + Impatto',      rubric:'why',  status:'prop'},
+        {date:['Gio 4','Giu'],  format:'car',  title:'Area Mobilità — Ciclofficina, bike sharing, spostamenti sostenibili',  meta:'Why We Do It · Studenti + Impatto',      rubric:'why',  status:'prop'},
+        {date:['Lun 8','Giu'],  format:'car',  title:'Area Cultura — eventi, laboratori, spazi aperti alla città',           meta:'Why We Do It · Studenti + Impatto',      rubric:'why',  status:'prop'},
+        {date:['Gio 11','Giu'], format:'reel', title:'🎫 Open Day — Siamo qui · Viale Margherita 95 · 18:30',                meta:'Save Your Spot · Tutti',                rubric:'open', status:'prop', hl:'hl'},
+        {date:['Lun 15','Giu'], format:'reel', title:'Grazie a chi era all\'Open Day — recap spazi + CTA prenotazione',      meta:'Save Your Spot · Tutti',                rubric:'sys',  status:'prop'},
+        {date:['Gio 18','Giu'], format:'car',  title:'Ecco com\'è Campus Margherita — gallery spazi + prenotazione',         meta:'Save Your Spot · Studenti + Lavoratori', rubric:'sys',  status:'prop'},
+        {date:['Lun 22','Giu'], format:'reel', title:'Il percorso è finito — emozione pre-apertura, recap del progetto',     meta:'Why We Do It · Tutti',                   rubric:'why',  status:'prop'},
+        {date:['Ven 26','Giu'], format:'reel', title:'🎉 Apertura — Campus Margherita è vivo',                                meta:'Milestone · Tutti',                      rubric:'mile', status:'prop', hl:'mi'}
+      ]}
+    ]
+  },
+  '2026-7': {
+    sub: 'Mese di apertura · Open Day Università 8/07',
+    sections: [
+      {label:'Luglio 2026 — Post-apertura', rows:[
+        {date:['Mer 1','Lug'],  format:'reel', title:'🎉 Inaugurazione — le porte sono aperte',                meta:'Milestone · Tutti',           rubric:'mile', status:'prod', hl:'mi'},
+        {date:['Lun 6','Lug'],  format:'car',  title:'Real Talk Nicola Bolcato — Agendo e la cultura locale', meta:'Real Talk · Cultura',         rubric:'rt',   status:'prod'},
+        {date:['Mer 8','Lug'],  format:'reel', title:'Open Day Università Vicenza — visita guidata',         meta:'Open Day · Studenti',         rubric:'open', status:'prop', hl:'hl'},
+        {date:['Lun 13','Lug'], format:'car',  title:'Real Talk Andrea — Pavimenti, cura dei materiali',     meta:'Real Talk · Fornitore',       rubric:'rt',   status:'prod'},
+        {date:['Gio 16','Lug'], format:'reel', title:'Vita di campus — primi residenti, prime storie',       meta:'Local Vibes · Comunità',      rubric:'lv',   status:'prod'},
+        {date:['Lun 20','Lug'], format:'car',  title:'Recap mese di apertura — numeri, volti, prossimi passi',meta:'Milestone · Tutti',           rubric:'mile', status:'prod'}
+      ]}
+    ]
+  }
+};
+
+function navCed(delta){
+  let m = cedMonth + delta, y = cedYear;
+  if(m<1){ m=12; y--; }
+  if(m>12){ m=1; y++; }
+  cedYear = y; cedMonth = m;
+  renderEditorial();
+}
+function navCedToday(){
+  const t = new Date();
+  let y = t.getFullYear(), m = t.getMonth()+1;
+  if(y!==2026){ y=2026; m=6; }
+  cedYear = y; cedMonth = m;
+  renderEditorial();
+}
+
+function renderEditorial(){
+  const key = cedYear+'-'+cedMonth;
+  const data = EDITORIAL[key];
+  document.getElementById('cedTitle').textContent = 'Calendario Editoriale — '+MONTH_NAMES[cedMonth]+' '+cedYear;
+  document.getElementById('cedSub').textContent = data ? data.sub : 'Nessun contenuto pianificato';
+  const body = document.getElementById('cedBody');
+  body.innerHTML = '';
+  if(!data){
+    body.innerHTML = '<div style="text-align:center;padding:36px 12px;color:var(--t3);font-size:11px">Nessun contenuto pianificato per '+MONTH_NAMES[cedMonth]+' '+cedYear+'</div>';
+    return;
+  }
+  data.sections.forEach((sec,si)=>{
+    const sub = document.createElement('div');
+    sub.className = 'ce-sub';
+    if(si>0) sub.style.paddingTop = '18px';
+    sub.textContent = sec.label;
+    body.appendChild(sub);
+    const head = document.createElement('div');
+    head.className = 'ce-grid ce-head';
+    head.innerHTML = '<span>Data</span><span>Formato</span><span>Contenuto</span><span>Rubrica</span><span>Stato</span>';
+    body.appendChild(head);
+    sec.rows.forEach(row=>{
+      const div = document.createElement('div');
+      div.className = 'ce-grid';
+      const dCls = row.hl==='hl'?'hl':row.hl==='mi'?'mi':'';
+      const fmtPill = row.format==='reel' ? '<span class="ce-pill cp-reel"><span class="dot"></span>REEL</span>' : '<span class="ce-pill cp-car"><span class="dot"></span>CAROUSEL</span>';
+      const ru = CED_RUBRICS[row.rubric] || {cls:'cp-sys',label:row.rubric};
+      const st = CED_STATUS[row.status] || {cls:'cp-st-prop',label:row.status};
+      div.innerHTML =
+        '<div class="ce-d '+dCls+'"><b>'+escapeHtml(row.date[0])+'</b> '+escapeHtml(row.date[1])+'</div>'+
+        '<div>'+fmtPill+'</div>'+
+        '<div class="ce-c '+dCls+'"><b>'+escapeHtml(row.title)+'</b><span class="ce-meta">'+escapeHtml(row.meta)+'</span></div>'+
+        '<div><span class="ce-pill '+ru.cls+'">'+escapeHtml(ru.label)+'</span></div>'+
+        '<div><span class="ce-pill '+st.cls+'">'+escapeHtml(st.label)+'</span></div>';
+      body.appendChild(div);
+    });
+  });
+}
+
+/* ============== ROADMAP EDIT ============== */
+function openRoadmapEdit(id){
+  const r = state.roadmap.find(x=>x.id===id);
+  if(!r) return;
+  modalType = 'roadmap-edit';
+  modalContext = id;
+  document.getElementById('mT').textContent = 'Modifica attività roadmap';
+  document.getElementById('modal').classList.add('sh');
+  ['mP','mPl','mC','mCl','mClr','mClrL','mD','mDl'].forEach(k=>document.getElementById(k).style.display='none');
+  ['mFrom','mFromL','mTo','mToL','mDur','mDurL'].forEach(k=>document.getElementById(k).style.display='block');
+  document.getElementById('mI').value = r.label;
+  document.getElementById('mFrom').value = r.from;
+  document.getElementById('mTo').value = r.to;
+  document.getElementById('mDur').value = r.dur || '';
+  setTimeout(()=>document.getElementById('mI').focus(), 80);
+}
+
+/* ============== ROADMAP ============== */
+const RM_COLORS = {
+  'green-strong':'linear-gradient(90deg,rgba(34,197,94,.32),rgba(34,197,94,.1))',
+  'green':       'linear-gradient(90deg,rgba(34,197,94,.22),rgba(34,197,94,.07))',
+  'green-soft':  'linear-gradient(90deg,rgba(34,197,94,.15),rgba(34,197,94,.04))',
+  'orange':      'linear-gradient(90deg,rgba(255,107,53,.32),rgba(255,107,53,.1))',
+  'purple':      'linear-gradient(90deg,rgba(139,92,246,.32),rgba(139,92,246,.1))',
+  'blue':        'linear-gradient(90deg,rgba(59,130,246,.32),rgba(59,130,246,.1))',
+  'gray':        'linear-gradient(90deg,rgba(255,255,255,.15),rgba(255,255,255,.04))'
+};
+function categoryToColor(cat){
+  return ({social:'green-strong',seo:'green',landing:'orange',ads:'purple',open:'blue',altro:'gray'})[cat]||'gray';
+}
+function renderRoadmap(){
+  const wrap = document.getElementById('rmR');
+  wrap.innerHTML = '';
+  state.roadmap.forEach(r=>{
+    const row = document.createElement('div');
+    row.className = 'rmr';
+    const lab = document.createElement('div');
+    lab.className = 'rml';
+    lab.textContent = r.label;
+    row.appendChild(lab);
+    if(r.color === 'diamond'){
+      const c = document.createElement('div');
+      c.style.cssText = 'grid-column:'+r.from+'/'+(r.to+1)+';display:flex;align-items:center;gap:6px;justify-content:center';
+      c.innerHTML = '<div class="rmm"></div><span style="font-size:9px;font-weight:600;letter-spacing:.3px">Apertura</span>';
+      row.appendChild(c);
+    } else {
+      const c = document.createElement('div');
+      c.style.gridColumn = r.from+'/'+(r.to+1);
+      const bar = document.createElement('div');
+      bar.className = 'rmb';
+      bar.style.background = RM_COLORS[r.color] || RM_COLORS.gray;
+      bar.innerHTML = '<span>'+escapeHtml(r.label)+'</span>'+(r.dur?'<span class="rmdu">'+escapeHtml(r.dur)+'</span>':'');
+      c.appendChild(bar);
+      if(r.subs && r.subs.length){
+        const tags = document.createElement('div');
+        tags.className = 'rmt';
+        r.subs.forEach(s=>{
+          const tg = document.createElement('span');
+          tg.className = 'rmtg';
+          tg.textContent = s;
+          tags.appendChild(tg);
+        });
+        c.appendChild(tags);
+      }
+      row.appendChild(c);
+    }
+    if(!r.fixed){
+      const del = document.createElement('button');
+      del.className = 'del-x rm-del';
+      del.textContent = '×';
+      del.onclick = ()=>{ state.roadmap = state.roadmap.filter(x=>x.id!==r.id); saveState(); renderRoadmap(); };
+      row.appendChild(del);
+    }
+    const ed = document.createElement('button');
+    ed.className = 'rm-edit';
+    ed.textContent = '✎';
+    ed.title = 'Modifica durata / range';
+    ed.onclick = ()=>openRoadmapEdit(r.id);
+    row.appendChild(ed);
+    wrap.appendChild(row);
+  });
+}
+
+/* ============== MODAL ============== */
+let modalType = 'event';
+let modalContext = null;
+function openM(type, dayCtx){
+  modalType = type;
+  modalContext = dayCtx || null;
+  const titles = {todo:'Nuova attività', event:'Nuovo evento calendario', countdown:'Nuova scadenza countdown', roadmap:'Nuova attività roadmap'};
+  document.getElementById('mT').textContent = titles[type] || 'Aggiungi';
+  document.getElementById('modal').classList.add('sh');
+
+  const showPri = type==='todo';
+  const showCat = type==='roadmap';
+  const showClr = type==='event';
+  const showDate = type==='event' || type==='countdown' || type==='todo';
+  document.getElementById('mP').style.display  = showPri ? 'block' : 'none';
+  document.getElementById('mPl').style.display = showPri ? 'block' : 'none';
+  document.getElementById('mC').style.display  = showCat ? 'block' : 'none';
+  document.getElementById('mCl').style.display = showCat ? 'block' : 'none';
+  document.getElementById('mClr').style.display  = showClr ? 'block' : 'none';
+  document.getElementById('mClrL').style.display = showClr ? 'block' : 'none';
+  document.getElementById('mD').style.display  = showDate ? 'block' : 'none';
+  document.getElementById('mDl').style.display = showDate ? 'block' : 'none';
+  // Always hide roadmap-edit-only fields here (they are shown only in openRoadmapEdit)
+  ['mFrom','mFromL','mTo','mToL','mDur','mDurL'].forEach(k=>document.getElementById(k).style.display='none');
+
+  // sane default date
+  const di = document.getElementById('mD');
+  if(modalContext && type==='event' && typeof modalContext === 'string'){
+    const [m,d] = modalContext.split('-').map(Number);
+    di.value = '2026-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+  } else {
+    const t = new Date();
+    di.value = (t.getFullYear()===2026 ? t : new Date(2026,5,11)).toISOString().slice(0,10);
+  }
+  document.getElementById('mI').value='';
+  setTimeout(()=>document.getElementById('mI').focus(), 80);
+}
+function closeM(){ document.getElementById('modal').classList.remove('sh'); }
+
+function addItem(){
+  const name = document.getElementById('mI').value.trim();
+  if(!name){ document.getElementById('mI').focus(); return; }
+  const dateStr = document.getElementById('mD').value;
+  if(modalType==='todo'){
+    const pri = document.getElementById('mP').value;
+    state.todos.push({id:uid('t'), name, pri, done:false});
+    renderTodo();
+    toast('Attività aggiunta');
+  } else if(modalType==='event'){
+    let key = null;
+    if(dateStr){
+      const [y,m,d] = dateStr.split('-').map(Number);
+      if(y===2026 && (m===5||m===6||m===7)){ key = m+'-'+d; }
+    }
+    const color = document.getElementById('mClr').value || 'orange';
+    if(key!=null){
+      if(!state.calEvents[key]) state.calEvents[key] = [];
+      state.calEvents[key].push({name, color});
+      calSelDay = key;
+    }
+    // also append a non-fixed countdown row
+    state.countdownEvents.unshift({id:uid('c'), name: name+(key?' ('+key.split('-')[1]+'/'+key.split('-')[0]+')':''), done:false, fixed:false});
+    state.countdownEvents.sort((a,b)=> (a.fixed?1:0) - (b.fixed?1:0));
+    buildCal();
+    renderCountdown();
+    toast(key!=null?'Evento aggiunto':'Evento aggiunto');
+  } else if(modalType==='countdown'){
+    state.countdownEvents.unshift({id:uid('c'), name, done:false, fixed:false});
+    state.countdownEvents.sort((a,b)=> (a.fixed?1:0) - (b.fixed?1:0));
+    renderCountdown();
+    toast('Scadenza aggiunta');
+  } else if(modalType==='roadmap'){
+    const cat = document.getElementById('mC').value;
+    state.roadmap.push({id:uid('r'), label:name, from:5, to:8, color:categoryToColor(cat), subs:[], dur:'Nuovo', fixed:false});
+    renderRoadmap();
+    toast('Attività roadmap aggiunta');
+  } else if(modalType==='roadmap-edit'){
+    const r = state.roadmap.find(x=>x.id===modalContext);
+    if(r){
+      let from = parseInt(document.getElementById('mFrom').value) || r.from;
+      let to   = parseInt(document.getElementById('mTo').value)   || r.to;
+      if(to < from){ const tmp = from; from = to; to = tmp; }
+      r.label = name;
+      r.from = Math.max(1, Math.min(12, from));
+      r.to   = Math.max(r.from, Math.min(12, to));
+      r.dur  = document.getElementById('mDur').value.trim() || r.dur || '';
+      renderRoadmap();
+      toast('Attività aggiornata');
+    }
+  }
+  saveState();
+  closeM();
+}
+
+/* close modal/popup helpers */
+document.getElementById('modal').addEventListener('click', e=>{ if(e.target.id==='modal') closeM(); });
+document.addEventListener('click', e=>{
+  if(!e.target.closest('.ev-popup') && !e.target.closest('.cc')) closeP();
+});
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape'){ closeM(); closeP(); }
+  if(e.key==='Enter' && document.getElementById('modal').classList.contains('sh')) addItem();
+});
+
+/* ============== CHARTS ============== */
+function initCharts(){
+  if(typeof Chart === 'undefined') return;
+  const tc = 'rgba(255,255,255,.4)', gc = 'rgba(255,255,255,.04)';
+  if(window.c1) window.c1.destroy();
+  const v = [986,815,578,690,1184,513,619,870,605,431,333,2104,538,338,325,351,312,488,449,550];
+  const cl = v.map(x => x>1000 ? 'rgba(255,107,53,.75)' : x>700 ? 'rgba(240,200,8,.55)' : x>500 ? 'rgba(34,197,94,.45)' : 'rgba(255,255,255,.1)');
+  window.c1 = new Chart(document.getElementById('cV'),{
+    type:'bar',
+    data:{labels:v.map((_,i)=>i+1), datasets:[{data:v, backgroundColor:cl, borderRadius:3, barPercentage:.7}]},
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{titleFont:{family:'DM Sans'}, bodyFont:{family:'DM Sans'}}}, scales:{y:{grid:{color:gc}, ticks:{color:tc, font:{size:9, family:'DM Sans'}}}, x:{grid:{display:false}, ticks:{color:tc, font:{size:8, family:'DM Sans'}}}}}
+  });
+  if(window.c3) window.c3.destroy();
+  // dynamic counts from state
+  const mayCount = Object.keys(state.calEvents).filter(k=>k.startsWith('5-')).reduce((a,k)=>a+state.calEvents[k].length,0);
+  const giuCount = Object.keys(state.calEvents).filter(k=>k.startsWith('6-')).reduce((a,k)=>a+state.calEvents[k].length,0);
+  window.c3 = new Chart(document.getElementById('cM'),{
+    type:'bar',
+    data:{labels:['Feb','Mar','Apr','Mag','Giu'], datasets:[
+      {label:'Pubblicati / pianificati', data:[8,6,7,mayCount,giuCount], backgroundColor:['rgba(255,107,53,.55)','rgba(255,107,53,.55)','rgba(255,107,53,.55)','rgba(34,197,94,.55)','rgba(59,130,246,.55)'], borderRadius:5, barPercentage:.55},
+      {label:'Target',     data:[8,8,8,8,12],         backgroundColor:'rgba(255,255,255,.08)', borderRadius:5, barPercentage:.55}
+    ]},
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:tc, font:{size:9, family:'DM Sans'}, usePointStyle:true, pointStyleWidth:6}}}, scales:{y:{max:14, grid:{color:gc}, ticks:{color:tc, font:{size:9, family:'DM Sans'}}}, x:{grid:{display:false}, ticks:{color:tc, font:{size:10, family:'DM Sans'}}}}}
+  });
+}
+
+/* ============== INIT ============== */
+function renderAll(){
+  renderTodo();
+  renderCountdown();
+  buildCal();
+  renderEditorial();
+  renderRoadmap();
+}
+
+updateCD();
+setInterval(updateCD, 60*60*1000); // refresh hourly
+renderAll();
+window.addEventListener('load', ()=>{
+  requestAnimationFrame(()=>requestAnimationFrame(initCharts));
+});
+window.addEventListener('resize', ()=>{ closeP(); });
+</script>
+</body>
+</html>
